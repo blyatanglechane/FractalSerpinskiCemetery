@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\stb_image_write.h">
+    <ClInclude Include="stb_image_write.h">
       <Filter>Файлы ресурсов</Filter>
     </ClInclude>
   </ItemGroup>

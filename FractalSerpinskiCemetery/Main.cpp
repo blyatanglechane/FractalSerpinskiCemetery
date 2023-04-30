@@ -1,29 +1,13 @@
+#pragma warning(disable : 4996)
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
-#include <time.h> 
 #include <GLFW/glfw3.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-// Добавим заголовки для функций работы с файлами
 #include <fstream>
-#include <sstream>
 
-//void saveScreenshot(GLFWwindow* window)
-//{
-//    int width, height;
-//    glfwGetWindowSize(window, &width, &height);
-//
-//    std::vector<unsigned char> pixels(width * height * 3);
-//    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
-//
-//    std::string filename = "screenshot.jpg";
-//    stbi_write_jpg(filename.c_str(), width, height, 3, pixels.data(), 100);
-//
-//    std::string path = "/Users/username/Desktop/" + filename;
-//    std::ofstream file(path, std::ios::out | std::ios::binary);
-//    file.write(reinterpret_cast<const char*>(pixels.data()), pixels.size());
-//    file.close();
-//}
+using namespace std;
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -58,8 +42,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     glScalef(scaleFactor, scaleFactor, scaleFactor);
 }
 
-void drawSerpinskyCemetery(float x, float y, float size, int depth) {
-    if (depth == 0) {
+void drawSerpinskyCemetery(float x, float y, float size, int depth) 
+{
+    if (depth == 0) 
+    {
         // Рисуем средний квадрат
         glBegin(GL_QUADS);
         glVertex2f(x - size / 2, y - size / 2);
@@ -68,19 +54,22 @@ void drawSerpinskyCemetery(float x, float y, float size, int depth) {
         glVertex2f(x + size / 2, y - size / 2);
         glEnd();
     }
-    else {
+    else 
+    {
         // Разделяем квадрат на 9 подквадратов
         float subSize = size / 3;
         float startX = x - size / 2;
         float startY = y - size / 2;
 
         // Рисуем 4 угловых квадрата
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 9; i++) 
+        {
             if (i == 3 || i == 4 || i == 5 || i == 7 || i == 1) {
                 // Не рисуем квадраты, находящихся в крестовине
                 continue;
             }
-            else {
+            else 
+            {
                 // Рекурсивно рисуем квадраты
                 float subX = startX + subSize * (i % 3);
                 float subY = startY + subSize * (i / 3);
@@ -120,25 +109,62 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        drawSerpinskyCemetery(0.0f, 0.0f, 2.0f, 9);
+        drawSerpinskyCemetery(0.0f, 0.0f, 1.0f, 3);
 
+        // Использование пользователем колёсика мыши
         glfwSetScrollCallback(window, scroll_callback);
 
+        
         glfwSetCursorPosCallback(window, cursor_position_callback);
 
-        //if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        //{
-        //    saveScreenshot(window);
-        //}
-        /* Swap front and back buffers */
+        // Эта функция меняет местами передний и задний буфер
         glfwSwapBuffers(window);
 
-        /* Poll for and process events */
+        // обрабатывает все события, произошедшие в окне - перемещение мыши или нажатие клавиш
         glfwPollEvents();
-        /*Перед завершением работы вашего приложения вы должны завершить
-        работу библиотеки GLFW, если она была инициализирована.
-        Это делается с помощью glfwTerminate.*/
     }
+
+    // число каналов (R, G, B)
+    int channels = 3;
+
+
+    vector<unsigned char> pixels(900 * 900 * channels);
+
+    // считываем содержимое буфера пикселей в массив pixels
+    glReadPixels(0, 0, 900, 900, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+
+    // инвертируем изображение (так как OpenGL считает нижний левый угол началом координат, а стандартные форматы изображений - верхний левый)
+    vector<unsigned char> inverted_pixels(900 * 900 * channels);
+
+
+    for (int y = 0; y < 900; ++y) 
+    {
+        for (int x = 0; x < 900; ++x) 
+        {
+            for (int c = 0; c < channels; ++c) 
+            {
+                inverted_pixels[(900 - y - 1) * 900 * channels + x * channels + c] = pixels[y * 900 * channels + x * channels + c];
+            }
+        }
+    }
+
+    // сохраняем изображение в формате JPEG на рабочий стол
+    string filename = "C:\\Users\\Admin\\Desktop\\SerpinskiCemetery.jpg"; // задаем имя файла
+
+
+    int result = stbi_write_jpg(filename.c_str(), 900, 900, channels, inverted_pixels.data(), 100);
+
+
+    if (result == 0) 
+    {
+        cout << "Ошибка сохранения файла" << "\n";
+    }
+
+
+
+    /*Перед завершением работы вашего приложения вы должны завершить
+    работу библиотеки GLFW, если она была инициализирована.
+    Это делается с помощью glfwTerminate.*/
     glfwTerminate();
     return 0;
 }
