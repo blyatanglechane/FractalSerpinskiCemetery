@@ -42,6 +42,78 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     glScalef(scaleFactor, scaleFactor, scaleFactor);
 }
 
+void drawSerpinskyCemeteryQuadrilateral(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, int depth)
+{
+    if (depth == 0)
+    {
+        // Рисуем средний квадрат
+        glBegin(GL_QUADS);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y2);
+        glVertex2f(x3, y3);
+        glVertex2f(x4, y4);
+        glVertex2f(x1, y1);
+        glEnd();
+    }
+    else
+    {
+        // Разделяем четырёхугольник на 9 подчетырёхугольников
+        // Расстояние между x1 и x2 и так же y1 и y2. В дальнейшем будем поэтапно прибавлять к начальным координатам но делённые на 3
+        float subSize1_2_x = sqrt(pow(x2 - x1, 2)) / 3;
+        float subSize1_2_y = sqrt(pow(y2 - y1, 2)) / 3;
+
+        float subSize2_3_x = sqrt(pow(x3 - x2, 2)) / 3;
+        float subSize2_3_y = sqrt(pow(y3 - y2, 2)) / 3;
+
+        float subSize3_4_x = sqrt(pow(x4 - x3, 2)) / 3;
+        float subSize3_4_y = sqrt(pow(y4 - y3, 2)) / 3;
+
+        float subSize4_1_x = sqrt(pow(x1 - x4, 2)) / 3;
+        float subSize4_1_y = sqrt(pow(y1 - y4, 2)) / 3;
+
+        //float startX = x - size / 2;
+        //float startY = y - size / 2;
+
+        // Рисуем 4 угловых четырёхугольника
+        for (int i = 0; i < 9; ++i)
+        {
+            if (i == 3 || i == 4 || i == 5 || i == 7 || i == 1) {
+                // Не рисуем четырёхугольники, находящихся в крестовине
+                continue;
+            }
+            else
+            {
+                // Рекурсивно рисуем четырёхугольники
+                if (i == 0) drawSerpinskyCemeteryQuadrilateral
+                (x1, y1,
+                    x1 + subSize1_2_x, y1,
+                    x1 + subSize4_1_x + subSize1_2_x, y1 - subSize4_1_y,
+                    x1 + subSize4_1_x, y1 - subSize4_1_y,
+                    depth - 1);
+                else if (i == 2) drawSerpinskyCemeteryQuadrilateral
+                (x1 + (subSize1_2_x * 2), y1,
+                    x2, y2,
+                    x2 + subSize2_3_x, y2 - subSize4_1_y,
+                    x1 + subSize4_1_x + (2 * subSize1_2_x), y1 - subSize4_1_y,
+                    depth - 1);
+                else if (i == 6) drawSerpinskyCemeteryQuadrilateral
+                (x1 + (subSize4_1_x * 2), y1 - (subSize4_1_y * 2) ,
+                    (x1 + subSize1_2_x) + (subSize4_1_x * 2), y1 - (subSize4_1_y * 2),
+                    (x1 + subSize1_2_x) + (subSize4_1_x * 3), y1 - (subSize4_1_y * 3) - (subSize3_4_y),
+                    x4, y4,
+                    depth - 1);
+                else if (i == 8) drawSerpinskyCemeteryQuadrilateral
+                (x1 + (subSize1_2_x * 2) + (subSize4_1_x * 2), y1 - (subSize4_1_y * 2),
+                    x1 + (subSize1_2_x * 3), y1 - (subSize4_1_y * 2),
+                    x3, y3,
+                    x1 + (subSize1_2_x * 2) + (subSize4_1_x * 3), y1 - ((subSize4_1_y * 3) + (subSize3_4_y * 2)),
+                    depth - 1);
+            }
+        }
+    }
+}
+
+
 void drawSerpinskyCemetery(float x, float y, float size, int depth) 
 {
     if (depth == 0) 
@@ -81,6 +153,7 @@ void drawSerpinskyCemetery(float x, float y, float size, int depth)
 
 int main(void)
 {
+    setlocale(LC_ALL, "Russian");
     /* Перед вызовом большинства функций GLFW библиотека должна быть инициализирована.
     Эта инициализация проверяет, какие функции доступны на компьютере,
     перечисляет мониторы и джойстики, инициализирует таймер и выполняет
@@ -102,6 +175,14 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    int UserInput;
+    bool UserChoice;
+    cout << "Какую геометрическую фигуру вы хотите взять за основу фрактала Кладбище Серпинского 2?\n" <<
+        "1. Квадрат\n" << 
+        "2. Четырёхугольник (требуется ввести координаты вручную)\n";
+    cin >> UserInput;
+    if (UserInput == 1) UserChoice = true;
+    else if (UserInput == 2) UserChoice = false;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -109,7 +190,10 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        drawSerpinskyCemetery(0.0f, 0.0f, 1.0f, 3);
+
+        if (UserChoice) drawSerpinskyCemetery(0.0f, 0.0f, 1.0f, 2);
+        else drawSerpinskyCemeteryQuadrilateral(-0.75f, 0.75f, 0.75f, 0.75f, 0.75f, -0.75, -0.5, -0.5, 4);
+
 
         // Использование пользователем колёсика мыши
         glfwSetScrollCallback(window, scroll_callback);
@@ -149,18 +233,11 @@ int main(void)
     }
 
     // сохраняем изображение в формате JPEG на рабочий стол
-    string filename = "C:\\Users\\Admin\\Desktop\\SerpinskiCemetery.jpg"; // задаем имя файла
-
+    string filename = "C:\\Users\\Admin\\Desktop\\SerpinskiCemetery.jpg";
 
     int result = stbi_write_jpg(filename.c_str(), 900, 900, channels, inverted_pixels.data(), 100);
 
-
-    if (result == 0) 
-    {
-        cout << "Ошибка сохранения файла" << "\n";
-    }
-
-
+    if (result == 0) cout << "Ошибка сохранения файла" << "\n";
 
     /*Перед завершением работы вашего приложения вы должны завершить
     работу библиотеки GLFW, если она была инициализирована.
