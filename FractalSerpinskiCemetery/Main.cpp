@@ -181,8 +181,19 @@ int main(void)
         "1.  вадрат\n" << 
         "2. „етырЄхугольник (требуетс€ ввести координаты вручную)\n";
     cin >> UserInput;
-    if (UserInput == 1) UserChoice = true;
-    else if (UserInput == 2) UserChoice = false;
+    float x1, y1, x2, y2, x3, y3, x4, y4, iteration;
+    if (UserInput == 1) {
+        UserChoice = true;
+        cout << "¬ведите номер итерации\n";
+        cin >> iteration;
+    }
+    else if (UserInput == 2) {
+        cout << "¬ведите координаты:\nx1, y1, x2, y2, x3, y3, x4, y4\n";
+        cin >> x1 >> y1 >> x2 >> y2 >> x3 >> y3 >> x4 >> y4;
+        cout << "¬ведите номер итерации\n";
+        cin >> iteration;
+        UserChoice = false;
+    }
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -191,9 +202,11 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
 
-        if (UserChoice) drawSerpinskyCemetery(0.0f, 0.0f, 1.0f, 2);
-        else drawSerpinskyCemeteryQuadrilateral(-0.75f, 0.75f, 0.75f, 0.75f, 0.75f, -0.75, -0.5, -0.5, 4);
-
+        if (UserChoice) drawSerpinskyCemetery(0.0f, 0.0f, 1.0f, iteration);
+        else {
+            drawSerpinskyCemeteryQuadrilateral(x1, y1, x2, y2, x3, y3, x4, y4, iteration);
+        }
+            /*-0.75 0.75 0.75 0.75 0.75 -0.75 -0.5 -0.5 4*/
 
         // »спользование пользователем колЄсика мыши
         glfwSetScrollCallback(window, scroll_callback);
