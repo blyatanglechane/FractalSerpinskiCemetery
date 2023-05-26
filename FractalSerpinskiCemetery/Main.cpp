@@ -23,8 +23,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
         }
         else
         {
-            float deltaX = (float)(xpos - lastX) / 100.0f;
-            float deltaY = (float)(ypos - lastY) / 100.0f;
+            float deltaX = (float)(xpos - lastX) / 300.0f;
+            float deltaY = (float)(ypos - lastY) / 300.0f;
             glTranslatef(deltaX, -deltaY, 0.0f);
             lastX = xpos;
             lastY = ypos;
@@ -38,8 +38,15 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    float scaleFactor = 1.0f - yoffset * 0.1f;
-    glScalef(scaleFactor, scaleFactor, scaleFactor);
+    double scaleFactor = 1.1;
+    if (yoffset > 0)
+    {
+        glScalef(scaleFactor, scaleFactor, 1.0);
+    }
+    else
+    {
+        glScalef(1.0 / scaleFactor, 1.0 / scaleFactor, 1.0);
+    }
 }
 
 void drawSerpinskyCemeteryQuadrilateral(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, int depth)
@@ -71,9 +78,6 @@ void drawSerpinskyCemeteryQuadrilateral(float x1, float y1, float x2, float y2, 
         float subSize4_1_x = sqrt(pow(x1 - x4, 2)) / 3;
         float subSize4_1_y = sqrt(pow(y1 - y4, 2)) / 3;
 
-        //float startX = x - size / 2;
-        //float startY = y - size / 2;
-
         // Рисуем 4 угловых четырёхугольника
         for (int i = 0; i < 9; ++i)
         {
@@ -86,28 +90,34 @@ void drawSerpinskyCemeteryQuadrilateral(float x1, float y1, float x2, float y2, 
                 // Рекурсивно рисуем четырёхугольники
                 if (i == 0) drawSerpinskyCemeteryQuadrilateral
                 (x1, y1,
-                    x1 + subSize1_2_x, y1,
-                    x1 + subSize4_1_x + subSize1_2_x, y1 - subSize4_1_y,
+                    x1 + subSize1_2_x, y1 - subSize1_2_y,
+                    x1 + subSize1_2_x + subSize4_1_x, y1 - subSize4_1_y - subSize1_2_y,
                     x1 + subSize4_1_x, y1 - subSize4_1_y,
                     depth - 1);
                 else if (i == 2) drawSerpinskyCemeteryQuadrilateral
-                (x1 + (subSize1_2_x * 2), y1,
+                (x2 - subSize1_2_x, y2 + subSize1_2_y,
                     x2, y2,
-                    x2 + subSize2_3_x, y2 - subSize4_1_y,
-                    x1 + subSize4_1_x + (2 * subSize1_2_x), y1 - subSize4_1_y,
+                    x2 + subSize2_3_x, y2 - subSize2_3_y,
+                    x2 + subSize2_3_x - subSize1_2_x, y2 - subSize2_3_y + subSize1_2_y,
                     depth - 1);
                 else if (i == 6) drawSerpinskyCemeteryQuadrilateral
-                (x1 + (subSize4_1_x * 2), y1 - (subSize4_1_y * 2) ,
-                    (x1 + subSize1_2_x) + (subSize4_1_x * 2), y1 - (subSize4_1_y * 2),
-                    (x1 + subSize1_2_x) + (subSize4_1_x * 3), y1 - (subSize4_1_y * 3) - (subSize3_4_y),
+                (x4 - subSize4_1_x, y4 + subSize4_1_y,
+                    x4 - subSize4_1_x + subSize3_4_x, y4 + subSize4_1_y - subSize3_4_y,
+                    x4 + subSize3_4_x, y4 - subSize3_4_y,
                     x4, y4,
                     depth - 1);
                 else if (i == 8) drawSerpinskyCemeteryQuadrilateral
-                (x1 + (subSize1_2_x * 2) + (subSize4_1_x * 2), y1 - (subSize4_1_y * 2),
-                    x1 + (subSize1_2_x * 3), y1 - (subSize4_1_y * 2),
+                (x3 - subSize2_3_x - subSize3_4_x, y3 + subSize2_3_y + subSize3_4_y,
+                    x3 - subSize2_3_x, y3 + subSize2_3_y,
                     x3, y3,
-                    x1 + (subSize1_2_x * 2) + (subSize4_1_x * 3), y1 - ((subSize4_1_y * 3) + (subSize3_4_y * 2)),
+                    x3 - subSize3_4_x, y3 + subSize3_4_y,
                     depth - 1);
+                //else if (i == 8) drawSerpinskyCemeteryQuadrilateral
+                //(x1 + (subSize1_2_x * 2) + (subSize4_1_x * 2), y1 - (subSize4_1_y * 2),
+                //    x1 + (subSize1_2_x * 3) + (subSize4_1_x * 2), y1 - (subSize4_1_y * 2),
+                //    x1 + (subSize1_2_x * 3) + (subSize4_1_x * 3), y1 - ((subSize4_1_y * 3) + (subSize3_4_y * 2)),
+                //    x3, y3,
+                //    depth - 1);
             }
         }
     }
@@ -202,11 +212,11 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
 
-        if (UserChoice) drawSerpinskyCemetery(0.0f, 0.0f, 1.0f, iteration);
+        if (UserChoice) drawSerpinskyCemetery(0.0f, 0.0f, 2.0f, iteration);
         else {
             drawSerpinskyCemeteryQuadrilateral(x1, y1, x2, y2, x3, y3, x4, y4, iteration);
         }
-            /*-0.75 0.75 0.75 0.75 0.75 -0.75 -0.5 -0.5 4*/
+            /*-0.75 0.75 0.5 0.5 0.75 -0.75 -0.5 -0.5 4*/
 
         // Использование пользователем колёсика мыши
         glfwSetScrollCallback(window, scroll_callback);
